@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wall Crack Classifier - AI Detektor Keretakan Dinding</title>
-  
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
+
   <!-- TensorFlow.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
-  
+
   <!-- Google Fonts - Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
   <script>
     tailwind.config = {
       theme: {
@@ -27,37 +29,49 @@
       }
     }
   </script>
-  
+
   <style>
     /* Ambient backdrop light effects */
     .ambient-glow-1 {
       background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 60%);
     }
+
     .ambient-glow-2 {
       background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 60%);
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans overflow-x-hidden relative flex flex-col justify-between">
+
+<body class="bg-white text-slate-100 min-h-screen font-sans overflow-x-hidden relative flex flex-col justify-between">
 
   <!-- Ambient Decorative Background Lights -->
-  <div class="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full ambient-glow-1 pointer-events-none z-0"></div>
-  <div class="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full ambient-glow-2 pointer-events-none z-0"></div>
+  <div class="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full ambient-glow-1 pointer-events-none z-0">
+  </div>
+  <div
+    class="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full ambient-glow-2 pointer-events-none z-0">
+  </div>
 
   <!-- Loading Overlay for Model Initialization -->
-  <div id="loading-overlay" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center z-50 transition-opacity duration-500">
+  <div id="loading-overlay"
+    class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center z-50 transition-opacity duration-500">
     <div class="max-w-md w-full px-6 text-center space-y-6">
-      <div class="inline-flex p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 animate-pulse">
+      <div
+        class="inline-flex p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 animate-pulse">
         <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21L14.907 18M9.813 15.904L12.083 10.83M9.813 15.904H4.07M14.907 18L18 21L16.208 14.86M14.907 18H20.08M12.083 10.83L16.208 14.86M12.083 10.83h-3.92m8.045 4.03h3.816M9.163 10.83h-3.816m12.012 4.03v-4.03m-8.196 4.03v-4.03"></path>
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9.813 15.904L9 21L14.907 18M9.813 15.904L12.083 10.83M9.813 15.904H4.07M14.907 18L18 21L16.208 14.86M14.907 18H20.08M12.083 10.83L16.208 14.86M12.083 10.83h-3.92m8.045 4.03h3.816M9.163 10.83h-3.816m12.012 4.03v-4.03m-8.196 4.03v-4.03">
+          </path>
         </svg>
       </div>
       <div class="space-y-2">
         <h3 class="text-xl font-bold tracking-tight text-white">Inisialisasi Model AI</h3>
-        <p id="loading-status" class="text-sm text-slate-400">Menghubungkan ke TensorFlow.js dan mengunduh bobot model...</p>
+        <p id="loading-status" class="text-sm text-slate-400">Menghubungkan ke TensorFlow.js dan mengunduh bobot
+          model...</p>
       </div>
       <div class="w-full bg-slate-900 rounded-full h-3 p-[2px] border border-slate-800">
-        <div id="progress-bar" class="bg-indigo-500 h-full rounded-full w-0 transition-all duration-300 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
+        <div id="progress-bar"
+          class="bg-indigo-500 h-full rounded-full w-0 transition-all duration-300 shadow-[0_0_8px_rgba(99,102,241,0.5)]">
+        </div>
       </div>
       <p id="progress-text" class="text-xs text-indigo-400 font-medium">0%</p>
     </div>
@@ -67,7 +81,8 @@
   <header class="border-b border-slate-900 bg-slate-950/60 backdrop-blur-md sticky top-0 z-40 w-full px-6 py-4">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+        <div
+          class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
           <span class="text-white font-extrabold text-lg">W</span>
         </div>
         <div>
@@ -75,7 +90,8 @@
           <p class="text-[10px] text-indigo-400 font-semibold tracking-wider uppercase">Computer Vision Project</p>
         </div>
       </div>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+      <span
+        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
         Model Ready
       </span>
@@ -83,27 +99,35 @@
   </header>
 
   <!-- Main Content -->
-  <main id="main-content" class="flex-grow max-w-6xl w-full mx-auto px-6 py-8 md:py-12 grid grid-cols-1 md:grid-cols-12 gap-8 items-start opacity-50 pointer-events-none transition-opacity duration-500 z-10">
-    
+  <main id="main-content"
+    class="flex-grow max-w-6xl w-full mx-auto px-6 py-8 md:py-12 grid grid-cols-1 md:grid-cols-12 gap-8 items-start opacity-50 pointer-events-none transition-opacity duration-500 z-10">
+
     <!-- Left Column: Upload and Preview -->
     <section class="md:col-span-6 space-y-6">
-      <div class="bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-3xl p-6 md:p-8 space-y-6 shadow-xl relative overflow-hidden">
+      <div
+        class="bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-3xl p-6 md:p-8 space-y-6 shadow-xl relative overflow-hidden">
         <div class="space-y-2">
           <h2 class="text-xl font-bold text-white flex items-center gap-2">
             <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+              </path>
             </svg>
             Unggah Citra Dinding
           </h2>
-          <p class="text-sm text-slate-400">Pilih atau letakkan foto permukaan dinding beton/semen untuk memulai analisis.</p>
+          <p class="text-sm text-slate-400">Pilih atau letakkan foto permukaan dinding beton/semen untuk memulai
+            analisis.</p>
         </div>
 
         <!-- Drag & Drop Zone -->
-        <div id="drop-zone" class="border-2 border-dashed border-slate-800 hover:border-indigo-500/50 rounded-2xl p-8 flex flex-col items-center justify-center gap-4 bg-slate-950/50 cursor-pointer transition-all duration-300 hover:bg-slate-900/20 group relative">
+        <div id="drop-zone"
+          class="border-2 border-dashed border-slate-800 hover:border-indigo-500/50 rounded-2xl p-8 flex flex-col items-center justify-center gap-4 bg-slate-950/50 cursor-pointer transition-all duration-300 hover:bg-slate-900/20 group relative">
           <input type="file" id="file-input" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer">
-          <div class="p-4 rounded-full bg-slate-900 text-slate-400 group-hover:text-indigo-400 group-hover:bg-slate-900/80 transition-all duration-300 shadow-inner">
+          <div
+            class="p-4 rounded-full bg-slate-900 text-slate-400 group-hover:text-indigo-400 group-hover:bg-slate-900/80 transition-all duration-300 shadow-inner">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
             </svg>
           </div>
           <div class="text-center space-y-1">
@@ -114,11 +138,15 @@
 
         <!-- Image Preview Area -->
         <div id="preview-container" class="hidden space-y-4">
-          <div class="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 aspect-video flex items-center justify-center">
+          <div
+            class="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 aspect-video flex items-center justify-center">
             <img id="image-preview" src="#" alt="Pratinjau" class="max-h-[300px] object-contain">
-            <button id="clear-btn" class="absolute top-3 right-3 p-2 rounded-xl bg-slate-900/80 backdrop-blur-md text-slate-400 hover:text-rose-400 border border-slate-800 hover:border-rose-500/30 transition-all duration-200">
+            <button id="clear-btn"
+              class="absolute top-3 right-3 p-2 rounded-xl bg-slate-900/80 backdrop-blur-md text-slate-400 hover:text-rose-400 border border-slate-800 hover:border-rose-500/30 transition-all duration-200">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                </path>
               </svg>
             </button>
           </div>
@@ -128,23 +156,28 @@
 
     <!-- Right Column: AI Analysis Result -->
     <section class="md:col-span-6">
-      <div class="bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-3xl p-6 md:p-8 min-h-[360px] flex flex-col justify-between shadow-xl relative overflow-hidden">
-        
+      <div
+        class="bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-3xl p-6 md:p-8 min-h-[360px] flex flex-col justify-between shadow-xl relative overflow-hidden">
+
         <!-- Background decoration grid -->
-        <div class="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30 pointer-events-none z-0"></div>
+        <div
+          class="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30 pointer-events-none z-0">
+        </div>
 
         <div class="relative z-10 w-full flex-grow flex flex-col justify-center">
-          
+
           <!-- Placeholder State -->
           <div id="result-placeholder" class="text-center py-12 space-y-4">
             <div class="inline-flex p-4 rounded-full bg-slate-950 text-slate-600 border border-slate-900">
               <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
             </div>
             <div class="space-y-1">
               <p class="text-slate-300 font-semibold text-base">Belum Ada Analisis</p>
-              <p class="text-xs text-slate-500 max-w-sm mx-auto">Silakan unggah foto dinding pada panel kiri untuk mendapatkan klasifikasi struktur dari kecerdasan buatan.</p>
+              <p class="text-xs text-slate-500 max-w-sm mx-auto">Silakan unggah foto dinding pada panel kiri untuk
+                mendapatkan klasifikasi struktur dari kecerdasan buatan.</p>
             </div>
           </div>
 
@@ -152,7 +185,8 @@
           <div id="result-loading" class="hidden text-center py-12 space-y-6">
             <div class="relative w-16 h-16 mx-auto">
               <div class="absolute inset-0 rounded-full border-4 border-slate-950"></div>
-              <div class="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
+              <div class="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin">
+              </div>
             </div>
             <div class="space-y-1">
               <p class="text-slate-300 font-semibold">AI Sedang Menganalisis...</p>
@@ -168,7 +202,8 @@
             </div>
 
             <!-- Main Label Card -->
-            <div id="result-card" class="p-6 rounded-2xl border transition-all duration-300 flex items-center justify-between gap-4">
+            <div id="result-card"
+              class="p-6 rounded-2xl border transition-all duration-300 flex items-center justify-between gap-4">
               <div class="space-y-2">
                 <p id="result-label" class="text-2xl font-black tracking-tight text-white">-</p>
                 <div class="flex items-center gap-2">
@@ -209,7 +244,8 @@
         </div>
 
         <!-- Model Info Metadata -->
-        <div class="border-t border-slate-900 pt-4 mt-6 flex justify-between items-center text-[10px] text-slate-500 relative z-10">
+        <div
+          class="border-t border-slate-900 pt-4 mt-6 flex justify-between items-center text-[10px] text-slate-500 relative z-10">
           <span>Tipe Model: TensorFlow.js Layers</span>
           <span>Target Dimensi: 128x128 px</span>
         </div>
@@ -238,7 +274,7 @@
       const loadingStatus = document.getElementById('loading-status');
       const progressBar = document.getElementById('progress-bar');
       const progressText = document.getElementById('progress-text');
-      
+
       try {
         // Load tensorflowjs layers model
         model = await tf.loadLayersModel('tfjs_model/model.json', {
@@ -248,14 +284,14 @@
             progressText.innerText = `Mengunduh model: ${percent}%`;
           }
         });
-        
+
         // Hide loading and enable UI interaction
         document.getElementById('loading-overlay').classList.add('opacity-0');
         setTimeout(() => {
           document.getElementById('loading-overlay').classList.add('hidden');
           document.getElementById('main-content').classList.remove('opacity-50', 'pointer-events-none');
         }, 500);
-        
+
         console.log("TensorFlow.js model loaded successfully.");
       } catch (error) {
         console.error("Error loading model:", error);
@@ -273,7 +309,7 @@
     const previewContainer = document.getElementById('preview-container');
     const imagePreview = document.getElementById('image-preview');
     const clearBtn = document.getElementById('clear-btn');
-    
+
     // File inputs interaction handlers
     dropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
@@ -287,7 +323,7 @@
     dropZone.addEventListener('drop', (e) => {
       e.preventDefault();
       dropZone.classList.remove('border-indigo-500', 'bg-slate-900/40');
-      
+
       if (e.dataTransfer.files.length > 0) {
         handleFile(e.dataTransfer.files[0]);
       }
@@ -309,15 +345,15 @@
         alert('Mohon unggah file bertipe citra/gambar.');
         return;
       }
-      
+
       const reader = new FileReader();
       reader.onload = (e) => {
         imagePreview.src = e.target.result;
-        
+
         // Switch views
         dropZone.classList.add('hidden');
         previewContainer.classList.remove('hidden');
-        
+
         // Wait for image load to perform classification
         imagePreview.onload = () => {
           classifyImage(imagePreview);
@@ -331,7 +367,7 @@
       imagePreview.src = '#';
       dropZone.classList.remove('hidden');
       previewContainer.classList.add('hidden');
-      
+
       // Reset result card to placeholder state
       document.getElementById('result-placeholder').classList.remove('hidden');
       document.getElementById('result-container').classList.add('hidden');
@@ -340,20 +376,20 @@
 
     async function classifyImage(imgElement) {
       if (!model) return;
-      
+
       const resultContainer = document.getElementById('result-container');
       const resultPlaceholder = document.getElementById('result-placeholder');
       const resultLoading = document.getElementById('result-loading');
-      
+
       resultPlaceholder.classList.add('hidden');
       resultContainer.classList.add('hidden');
       resultLoading.classList.remove('hidden');
-      
+
       // Dynamic delay to give a smooth AI classification animation feel
       await new Promise(resolve => setTimeout(resolve, 400));
-      
+
       const startTime = performance.now();
-      
+
       try {
         const tensor = tf.tidy(() => {
           // 1. Get raw pixel values from <img>
@@ -366,18 +402,18 @@
           const batched = casted.expandDims(0);
           return batched;
         });
-        
+
         // Run inference
         const prediction = model.predict(tensor);
         const score = prediction.dataSync()[0]; // Sigmoid output between 0 and 1
-        
+
         // Cleanup tensors immediately
         tensor.dispose();
         prediction.dispose();
-        
+
         const endTime = performance.now();
         const inferenceTime = Math.round(endTime - startTime);
-        
+
         displayResult(score, inferenceTime);
       } catch (error) {
         console.error("Error during inference:", error);
@@ -389,14 +425,14 @@
     function displayResult(score, timeMs) {
       const resultLoading = document.getElementById('result-loading');
       const resultContainer = document.getElementById('result-container');
-      
+
       resultLoading.classList.add('hidden');
       resultContainer.classList.remove('hidden');
-      
+
       // Logika Sigmoid: Dekat ke 0 = Cracked, Dekat ke 1 = Normal (dari ProjectUAS.ipynb)
       const isNormal = score >= 0.5;
       const confidence = isNormal ? (score * 100) : ((1 - score) * 100);
-      
+
       const labelElement = document.getElementById('result-label');
       const confidenceElement = document.getElementById('result-confidence');
       const gaugeElement = document.getElementById('result-gauge');
@@ -404,40 +440,40 @@
       const timeElement = document.getElementById('result-time');
       const cardElement = document.getElementById('result-card');
       const iconContainer = document.getElementById('result-icon-container');
-      
+
       // Reset card borders/backgrounds
       cardElement.className = "p-6 rounded-2xl border transition-all duration-300 flex items-center justify-between gap-4";
-      
+
       if (isNormal) {
         // Class Normal
         labelElement.innerText = "NORMAL (AMAN)";
         labelElement.className = "text-2xl font-extrabold tracking-tight text-emerald-400";
         cardElement.classList.add("bg-emerald-500/5", "border-emerald-500/20", "shadow-[0_0_30px_rgba(16,185,129,0.1)]");
-        
+
         // Green success icon
         iconContainer.innerHTML = `
           <svg class="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
         `;
-        
+
         gaugeElement.className = "h-full rounded-full bg-emerald-500 transition-all duration-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]";
       } else {
         // Class Cracked
         labelElement.innerText = "RETAK (CRACKED)";
         labelElement.className = "text-2xl font-extrabold tracking-tight text-rose-400";
         cardElement.classList.add("bg-rose-500/5", "border-rose-500/20", "shadow-[0_0_30px_rgba(244,63,94,0.1)]");
-        
+
         // Red warning icon
         iconContainer.innerHTML = `
           <svg class="w-10 h-10 text-rose-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
           </svg>
         `;
-        
+
         gaugeElement.className = "h-full rounded-full bg-rose-500 transition-all duration-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]";
       }
-      
+
       confidenceElement.innerText = `${confidence.toFixed(2)}%`;
       confidencePercentLabel.innerText = `${confidence.toFixed(2)}%`;
       gaugeElement.style.width = `${confidence}%`;
@@ -445,4 +481,5 @@
     }
   </script>
 </body>
+
 </html>
